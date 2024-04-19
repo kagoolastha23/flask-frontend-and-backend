@@ -1,0 +1,121 @@
+<!-- 
+Create UI for chatbot for user to interact pass message to chatbot and get response from chatbot
+- Create UI for chatbot
+- Create UI for input message
+- Create function to get data from chatbot and display on UI "/get-data" GET
+- Create function to send message to chatbot and get response from chatbot "/chatbot" POST
+- Create function to display loading icon when waiting for response from chatbot
+- Create function to display message from user and response from chatbot
+- Create function to display message from chatbot when user send message to chatbot
+
+Backend API Base URL: http://127.0.0.1:5000
+- /get-data GET Fetch data using axios :return from backend [{"question": "question from chatbot", "answer": "response from chatbot"}]
+- /chatbot POST Fetch data using axios :return from backend {"answer": "response from chatbot"}
+
+Tools
+- Import vue.js from cdn
+- Import axios from cdn
+- Import bootstrap from cdn
+
+*while using axios to fetch data from backend, we need to use async await to wait for response from backend
+*create function to display loading icon when waiting for response from backend
+
+Author: Watcharapon Weeraborirak
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- vue.js cdn -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- axios cdn -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 offset-md-3 mt-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h1 class="text-center">Chatbot</h1>
+                        </div>
+                        <div class="card-body">
+                            <div class="chatbox">
+                                <div class="chatbox__messages">
+                                    <div class="message" v-for="(message, k) in messages" :key="k">
+                                        <div class="card">
+                                            <div class="card-body">
+                                            <p><span style="color: red">Question</span> [[message.question]]</p>
+                                            <p><span style="color: red">Answer</span> [[ message.answer ]]</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="spinner-border text-primary" role="status" v-if="isLoading">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="chatbox__input">
+                                    <input type="text" class="form-control" placeholder="Type a message..." v-model="message" @keyup.enter="sendMessage">
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: '',
+            messages: [],
+            isLoading: false,
+        },
+        delimiters : ['[[', ']]'],
+        created() {
+            this.getData();
+        },
+        methods: {
+            async getData(){
+                const path = 'http://127.0.0.1:5000/get-data';
+                await axios.get(path)
+                .then((res)=>{
+                    console.log(res.data);
+                    this.messages = res.data;
+                })
+                .catch((err)=>{
+                    console.log(err);
+                })
+            },
+            async sendMessage() {
+                this.isLoading = true;
+                await axios.post('http://127.0.0.1:5000/chatbot', {
+                    message: this.message
+                }).then(response => {
+                    this.messages.push({
+                        question: this.message,
+                        answer: response.data.answer
+                    });
+                    this.message = '';
+                });
+                this.isLoading = false;
+            }
+        },
+
+    });
+</script>
+
